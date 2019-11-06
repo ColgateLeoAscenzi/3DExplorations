@@ -49,7 +49,11 @@ var clock = new THREE.Clock();
 // custom global variables
 var cube;
 var iso;
+var cone;
+var ring;
+var torus;
 var shape;
+
 var objects =[];
 init();
 animate();
@@ -163,7 +167,7 @@ function init()
 
 
 	// icosahedron
-	var iso = new THREE.Mesh(
+	iso = new THREE.Mesh(
 		new THREE.IcosahedronGeometry( 50, 1 ), // radius, subdivisions
 		shapeMaterial );
 	iso.position.set(-100, 50, 0);
@@ -172,31 +176,34 @@ function init()
 
 
 	// pyramid
-	var shape = new THREE.Mesh(
+	cone = new THREE.Mesh(
 		// radiusAtTop, radiusAtBottom, height, segmentsAroundRadius, segmentsAlongHeight,
 		new THREE.CylinderGeometry( 0, 30, 100, 4, 4 ),
 		shapeMaterial );
-	shape.position.set(0, 50, 0);
-	scene.add( shape );
+	cone.position.set(0, 50, 0);
+	scene.add( cone );
+	objects.push(cone);
 
 
 	// torus
-	var shape = new THREE.Mesh(
+	ring = new THREE.Mesh(
 	    // radius of entire torus, diameter of tube (less than total radius),
 		// sides per cylinder segment, cylinders around torus ("sides")
 		new THREE.TorusGeometry( 40, 10, 16, 40 ),
 		shapeMaterial );
-	shape.position.set(100, 50, 0);
-	scene.add( shape );
+	ring.position.set(100, 50, 0);
+	scene.add( ring );
+	objects.push(ring);
 
 	// torus knot
-	var shape = new THREE.Mesh(
+	torus = new THREE.Mesh(
 		// total knot radius, tube radius, number cylinder segments, sides per cyl. segment,
 		//  p-loops around torus, q-loops around torus
 		new THREE.TorusKnotGeometry( 30, 1, 160, 10, 30, 7 ),
 		shapeMaterial );
-	shape.position.set(225, 50, 0);
-	scene.add( shape );
+	torus.position.set(225, 50, 0);
+	scene.add( torus );
+	objects.push(torus);
 
 
 gui = new dat.GUI();
@@ -212,72 +219,88 @@ gui = new dat.GUI();
 		opacity: 1, 
 		visible: true,
 		material: "Phong",
-		reset: function() { resetSphere() }
+		reset: function() { resetShapes() }
 	};
-
 	
 	
-	var sphereColor = gui.addColor( parameters, 'color' ).name('Color (Diffuse)').listen();
-	sphereColor.onChange(function(value) // onFinishChange
-	{   cube.material.color.setHex( value.replace("#", "0x") );   });
-	var sphereColorA = gui.addColor( parameters, 'colorA' ).name('Color (Ambient)').listen();
-	sphereColorA.onChange(function(value) // onFinishChange
-	{   cube.material.ambient.setHex( value.replace("#", "0x") );   });
-	var sphereColorE = gui.addColor( parameters, 'colorE' ).name('Color (Emissive)').listen();
-	sphereColorE.onChange(function(value) // onFinishChange
-	{   cube.material.emissive.setHex( value.replace("#", "0x") );   });
-	var sphereColorS = gui.addColor( parameters, 'colorS' ).name('Color (Specular)').listen();
-	sphereColorS.onChange(function(value) // onFinishChange
-	{   cube.material.specular.setHex( value.replace("#", "0x") );   });
-	var sphereShininess = gui.add( parameters, 'shininess' ).min(0).max(60).step(1).name('Shininess').listen();
-	sphereShininess.onChange(function(value)
-	{   cube.material.shininess = value;   });
-	var sphereOpacity = gui.add( parameters, 'opacity' ).min(0).max(1).step(0.01).name('Opacity').listen();
-	sphereOpacity.onChange(function(value)
-	{   cube.material.opacity = value;   });
+	var folder1 = gui.addFolder('Light Position');
+	var lightX = folder1.add( parameters, 'x' ).min(-300).max(300).step(1).listen();
+	var lightY = folder1.add( parameters, 'y' ).min(0).max(300).step(1).listen();
+	var lightZ = folder1.add( parameters, 'z' ).min(-200).max(200).step(1).listen();
+	folder1.open();
 	
-	var sphereMaterial = gui.add( parameters, 'material', [ "Basic", "Lambert", "Phong", "Wireframe" ] ).name('Material Type').listen();
-	sphereMaterial.onChange(function(value) 
-	{   updateSphere();   });
+	lightX.onChange(function(value) 
+	{   light.position.x = value;   });
+	lightY.onChange(function(value) 
+	{   light.position.y = value;   });
+	lightZ.onChange(function(value) 
+	{   light.position.z = value;   });
+	
+	
+	var lightColor = gui.addColor( parameters, 'color' ).name('Color (Diffuse)').listen();
+	lightColor.onChange(function(value) // onFinishChange
+	{   for(var i = 0; i < objects.length; i++){var currentMat = objects[i];currentMat.material.color.setHex( value.replace("#", "0x") ); }  });
+	var lightColorA = gui.addColor( parameters, 'colorA' ).name('Color (Ambient)').listen();
+	lightColorA.onChange(function(value) // onFinishChange
+	{   for(var i = 0; i < objects.length; i++){var currentMat = objects[i];currentMat.material.ambient.setHex( value.replace("#", "0x") );  } });
+	var lightColorE = gui.addColor( parameters, 'colorE' ).name('Color (Emissive)').listen();
+	lightColorE.onChange(function(value) // onFinishChange
+	{   for(var i = 0; i < objects.length; i++){var currentMat = objects[i];currentMat.material.emissive.setHex( value.replace("#", "0x") ); }  });
+	var lightColorS = gui.addColor( parameters, 'colorS' ).name('Color (Specular)').listen();
+	lightColorS.onChange(function(value) // onFinishChange
+	{   for(var i = 0; i < objects.length; i++){var currentMat = objects[i];currentMat.material.specular.setHex( value.replace("#", "0x") ); }  });
+	var lightShininess = gui.add( parameters, 'shininess' ).min(0).max(60).step(1).name('Shininess').listen();
+	lightShininess.onChange(function(value)
+	{   for(var i = 0; i < objects.length; i++){var currentMat = objects[i];currentMat.material.shininess = value; }  });
+	var lightOpacity = gui.add( parameters, 'opacity' ).min(0).max(1).step(0.01).name('Opacity').listen();
+	lightOpacity.onChange(function(value)
+	{   for(var i = 0; i < objects.length; i++){var currentMat = objects[i];currentMat.material.opacity = value; }  });
+	
+	var lightMaterial = gui.add( parameters, 'material', [ "Basic", "Lambert", "Phong", "Wireframe" ] ).name('Material Type').listen();
+	lightMaterial.onChange(function(value) 
+	{   updateShapes();   });
 		
-	gui.add( parameters, 'reset' ).name("Reset Sphere Parameters");
+	gui.add( parameters, 'reset' ).name("Reset light Parameters");
 	
 	gui.open();
-	updateSphere();
+	updateShapes();
 	
 	
 }
 
-function updateSphere()
+function updateShapes()
 {
-	
-	var value = parameters.material;
-	var newMaterial;
-	if (value == "Basic")
-		newMaterial = new THREE.MeshBasicMaterial( { color: 0x000000 } );
-	else if (value == "Lambert")
-		newMaterial = new THREE.MeshLambertMaterial( { color: 0x000000 } );
-	else if (value == "Phong")
-		newMaterial = new THREE.MeshPhongMaterial( { color: 0x000000 } );
-	else // (value == "Wireframe")
-		newMaterial = new THREE.MeshBasicMaterial( { wireframe: true } );
-	cube.material = newMaterial;
-	
-	cube.material.color.setHex( parameters.color.replace("#", "0x") );
-	if (cube.material.ambient)
-		cube.material.ambient.setHex( parameters.colorA.replace("#", "0x") );
-    if (cube.material.emissive)
-		cube.material.emissive.setHex( parameters.colorE.replace("#", "0x") ); 
-	if (cube.material.specular)
-		cube.material.specular.setHex( parameters.colorS.replace("#", "0x") ); 
-    if (cube.material.shininess)
-		cube.material.shininess = parameters.shininess;
-	cube.material.opacity = parameters.opacity;  
-	cube.material.transparent = true;
+	for(var i = 0; i < objects.length; i++){
+		var currentMat = objects[i];
+		var value = parameters.material;
+		var newMaterial;
+		if (value == "Basic")
+			newMaterial = new THREE.MeshBasicMaterial( { color: 0x000000 } );
+		else if (value == "Lambert")
+			newMaterial = new THREE.MeshLambertMaterial( { color: 0x000000 } );
+		else if (value == "Phong")
+			newMaterial = new THREE.MeshPhongMaterial( { color: 0x000000 } );
+		else // (value == "Wireframe")
+			newMaterial = new THREE.MeshBasicMaterial( { wireframe: true } );
+		currentMat.material = newMaterial;
+
+		currentMat.material.color.setHex( parameters.color.replace("#", "0x") );
+		if (currentMat.material.ambient)
+			currentMat.material.ambient.setHex( parameters.colorA.replace("#", "0x") );
+		if (currentMat.material.emissive)
+			currentMat.material.emissive.setHex( parameters.colorE.replace("#", "0x") ); 
+		if (currentMat.material.specular)
+			currentMat.material.specular.setHex( parameters.colorS.replace("#", "0x") ); 
+		if (currentMat.material.shininess)
+			currentMat.material.shininess = parameters.shininess;
+		currentMat.material.opacity = parameters.opacity;  
+		currentMat.material.transparent = true;
+	}
+
 
 }
 
-function resetSphere()
+function resetShapes()
 {
 	parameters.x = 0;
 	parameters.y = 30;
@@ -290,7 +313,7 @@ function resetSphere()
 	parameters.opacity = 1;
 	parameters.visible = true;
 	parameters.material = "Phong";
-	updateSphere();
+	updateShapes();
 }
 
 function animate()
