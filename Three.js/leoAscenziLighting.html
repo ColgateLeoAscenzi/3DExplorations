@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-	<title>Shapes (Three.js)</title>
+	<title>Color Explorer (Three.js)</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<link rel=stylesheet href="css/base.css"/>
@@ -17,6 +17,7 @@
 <script src="js/THREEx.WindowResize.js"></script>
 
 <script type='text/javascript' src='js/DAT.GUI.min.js'></script>
+
 <!-- jQuery code to display an information button and box when clicked. -->
 <script src="js/jquery-1.9.1.js"></script>
 <script src="js/jquery-ui.js"></script>
@@ -28,6 +29,7 @@
 This three.js demo is part of a collection at
 <a href="http://stemkoski.github.io/Three.js/">http://stemkoski.github.io/Three.js/</a>
 </div>
+<!-- ------------------------------------------------------------ -->
 
 <div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
 <script>
@@ -35,10 +37,7 @@ This three.js demo is part of a collection at
 	Three.js "tutorials by example"
 	Author: Lee Stemkoski
 	Date: July 2013 (three.js v59dev)
-
-	Modified by Leo Ascenzi
-	Date: October 2019
-*/
+ */
 
 // MAIN
 
@@ -46,16 +45,17 @@ This three.js demo is part of a collection at
 var container, scene, camera, renderer, controls, stats;
 var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock();
+
 // custom global variables
-var cube;
-var iso;
-var shape;
-var objects =[];
+var sphere;
+var parameters;
+var gui;
+
 init();
 animate();
 
-// FUNCTIONS
-function init()
+// FUNCTIONS 		
+function init() 
 {
 	// SCENE
 	scene = new THREE.Scene();
@@ -65,12 +65,12 @@ function init()
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera);
 	camera.position.set(0,150,400);
-	camera.lookAt(scene.position);
+	camera.lookAt(scene.position);	
 	// RENDERER
 	if ( Detector.webgl )
 		renderer = new THREE.WebGLRenderer( {antialias:true} );
 	else
-		renderer = new THREE.CanvasRenderer();
+		renderer = new THREE.CanvasRenderer(); 
 	renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	container = document.getElementById( 'ThreeJS' );
 	container.appendChild( renderer.domElement );
@@ -85,10 +85,11 @@ function init()
 	stats.domElement.style.bottom = '0px';
 	stats.domElement.style.zIndex = 100;
 	container.appendChild( stats.domElement );
+
+
 	// LIGHT
 	var light = new THREE.PointLight(0xffffff);
 	light.position.set(-100,150,100);
-	scene.add(light);
 	
 	// need to add an ambient light
 	//  for ambient colors to be visible
@@ -98,7 +99,6 @@ function init()
 	light2.position.set( light.position );
 	scene.add(light2);
 	
-	
 	var lightbulbGeometry = new THREE.SphereGeometry( 10, 16, 8 );
 	var lightbulbMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, transparent: true,  opacity: 0.8, blending: THREE.AdditiveBlending } );
 	var wireMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } );
@@ -107,99 +107,39 @@ function init()
 	lightbulb.position = light.position;
 	scene.add(lightbulb);
 	scene.add(light);
-	
-	
-	
+
 	// FLOOR
-	var floorTexture = new THREE.ImageUtils.loadTexture( 'images/grass.jpg');
-	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
-	floorTexture.repeat.set(1,1);
-
-
-	var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide });
+	var floorTexture = new THREE.ImageUtils.loadTexture( 'images/checkerboard.jpg' );
+	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
+	floorTexture.repeat.set( 10, 10 );
+	var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
 	var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
 	var floor = new THREE.Mesh(floorGeometry, floorMaterial);
-	floor.position.y = -0.5;
+	floor.position.y = -100;
 	floor.rotation.x = Math.PI / 2;
 	scene.add(floor);
-	// SKYBOX/FOG
 
-	var skyboxTexture = new THREE.ImageUtils.loadTexture( 'images/me.jpg' );
-	skyboxTexture.wrapS = skyboxTexture.wrapT = THREE.RepeatWrapping;
-	skyboxTexture.repeat.set( 1, 1 );
-	var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
-	var skyBoxMaterial = new THREE.MeshBasicMaterial( { map: skyboxTexture, side: THREE.BackSide } );
-	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
-	scene.add(skyBox);
-	scene.fog = new THREE.FogExp2( 0x9999ff, 0.00015 );
+	// SKYBOX/FOG
+	//var skyBoxGeometry = new THREE.SphereGeometry( 10000, 10000, 10000 );
+	//var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
+	//var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
+	// scene.add(skyBox);
+	scene.fog = new THREE.FogExp2( 0x9999ff, 0.00025 );
 
 	////////////
 	// CUSTOM //
 	////////////
-
-	// Using wireframe materials to illustrate shape details.
-	var darkMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
-	var shapeMaterial = new THREE.MeshPhongMaterial( { color:0xff0000, transparent:true, opacity:1 } );
-	var multiMaterial = [ darkMaterial, shapeMaterial ];
-
-	///////////
-	// ROW 1 //
-	///////////
-//	
-//	var sphereGeometry = new THREE.SphereGeometry( 100, 50, 50 );
-//	var sphereMaterial = new THREE.MeshPhongMaterial( { color:0xff0000, transparent:true, opacity:1 } );
-//	sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
-//	sphere.position.set(0,30,0);
-//	scene.add(sphere);
+	var sphereGeometry = new THREE.SphereGeometry( 100, 50, 50 );
+	var sphereMaterial = new THREE.MeshPhongMaterial( { color:0xff0000, transparent:true, opacity:1 } );
+	sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+	sphere.position.set(0,30,0);
+	scene.add(sphere);
 
 	var axes = new THREE.AxisHelper(10);
 	scene.add(axes);
+
 	
-//	// cube
-	cube = new THREE.Mesh(new THREE.CubeGeometry(100,100,100,1,1,1), shapeMaterial);
-	cube.position.set(-250, 50, 0);
-	scene.add( cube );
-	objects.push(cube)
-
-
-	// icosahedron
-	var iso = new THREE.Mesh(
-		new THREE.IcosahedronGeometry( 50, 1 ), // radius, subdivisions
-		shapeMaterial );
-	iso.position.set(-100, 50, 0);
-	scene.add( iso );
-	objects.push(iso);
-
-
-	// pyramid
-	var shape = new THREE.Mesh(
-		// radiusAtTop, radiusAtBottom, height, segmentsAroundRadius, segmentsAlongHeight,
-		new THREE.CylinderGeometry( 0, 30, 100, 4, 4 ),
-		shapeMaterial );
-	shape.position.set(0, 50, 0);
-	scene.add( shape );
-
-
-	// torus
-	var shape = new THREE.Mesh(
-	    // radius of entire torus, diameter of tube (less than total radius),
-		// sides per cylinder segment, cylinders around torus ("sides")
-		new THREE.TorusGeometry( 40, 10, 16, 40 ),
-		shapeMaterial );
-	shape.position.set(100, 50, 0);
-	scene.add( shape );
-
-	// torus knot
-	var shape = new THREE.Mesh(
-		// total knot radius, tube radius, number cylinder segments, sides per cyl. segment,
-		//  p-loops around torus, q-loops around torus
-		new THREE.TorusKnotGeometry( 30, 1, 160, 10, 30, 7 ),
-		shapeMaterial );
-	shape.position.set(225, 50, 0);
-	scene.add( shape );
-
-
-gui = new dat.GUI();
+	gui = new dat.GUI();
 	
 	parameters = 
 	{
@@ -216,25 +156,37 @@ gui = new dat.GUI();
 	};
 
 	
+	var folder1 = gui.addFolder('Position');
+	var sphereX = folder1.add( parameters, 'x' ).min(-200).max(200).step(1).listen();
+	var sphereY = folder1.add( parameters, 'y' ).min(0).max(100).step(1).listen();
+	var sphereZ = folder1.add( parameters, 'z' ).min(-200).max(200).step(1).listen();
+	folder1.open();
+	
+	sphereX.onChange(function(value) 
+	{   sphere.position.x = value;   });
+	sphereY.onChange(function(value) 
+	{   sphere.position.y = value;   });
+	sphereZ.onChange(function(value) 
+	{   sphere.position.z = value;   });
 	
 	var sphereColor = gui.addColor( parameters, 'color' ).name('Color (Diffuse)').listen();
 	sphereColor.onChange(function(value) // onFinishChange
-	{   cube.material.color.setHex( value.replace("#", "0x") );   });
+	{   sphere.material.color.setHex( value.replace("#", "0x") );   });
 	var sphereColorA = gui.addColor( parameters, 'colorA' ).name('Color (Ambient)').listen();
 	sphereColorA.onChange(function(value) // onFinishChange
-	{   cube.material.ambient.setHex( value.replace("#", "0x") );   });
+	{   sphere.material.ambient.setHex( value.replace("#", "0x") );   });
 	var sphereColorE = gui.addColor( parameters, 'colorE' ).name('Color (Emissive)').listen();
 	sphereColorE.onChange(function(value) // onFinishChange
-	{   cube.material.emissive.setHex( value.replace("#", "0x") );   });
+	{   sphere.material.emissive.setHex( value.replace("#", "0x") );   });
 	var sphereColorS = gui.addColor( parameters, 'colorS' ).name('Color (Specular)').listen();
 	sphereColorS.onChange(function(value) // onFinishChange
-	{   cube.material.specular.setHex( value.replace("#", "0x") );   });
+	{   sphere.material.specular.setHex( value.replace("#", "0x") );   });
 	var sphereShininess = gui.add( parameters, 'shininess' ).min(0).max(60).step(1).name('Shininess').listen();
 	sphereShininess.onChange(function(value)
-	{   cube.material.shininess = value;   });
+	{   sphere.material.shininess = value;   });
 	var sphereOpacity = gui.add( parameters, 'opacity' ).min(0).max(1).step(0.01).name('Opacity').listen();
 	sphereOpacity.onChange(function(value)
-	{   cube.material.opacity = value;   });
+	{   sphere.material.opacity = value;   });
 	
 	var sphereMaterial = gui.add( parameters, 'material', [ "Basic", "Lambert", "Phong", "Wireframe" ] ).name('Material Type').listen();
 	sphereMaterial.onChange(function(value) 
@@ -250,7 +202,6 @@ gui = new dat.GUI();
 
 function updateSphere()
 {
-	
 	var value = parameters.material;
 	var newMaterial;
 	if (value == "Basic")
@@ -261,19 +212,22 @@ function updateSphere()
 		newMaterial = new THREE.MeshPhongMaterial( { color: 0x000000 } );
 	else // (value == "Wireframe")
 		newMaterial = new THREE.MeshBasicMaterial( { wireframe: true } );
-	cube.material = newMaterial;
+	sphere.material = newMaterial;
 	
-	cube.material.color.setHex( parameters.color.replace("#", "0x") );
-	if (cube.material.ambient)
-		cube.material.ambient.setHex( parameters.colorA.replace("#", "0x") );
-    if (cube.material.emissive)
-		cube.material.emissive.setHex( parameters.colorE.replace("#", "0x") ); 
-	if (cube.material.specular)
-		cube.material.specular.setHex( parameters.colorS.replace("#", "0x") ); 
-    if (cube.material.shininess)
-		cube.material.shininess = parameters.shininess;
-	cube.material.opacity = parameters.opacity;  
-	cube.material.transparent = true;
+	sphere.position.x = parameters.x;
+	sphere.position.y = parameters.y;
+	sphere.position.z = parameters.z;
+	sphere.material.color.setHex( parameters.color.replace("#", "0x") );
+	if (sphere.material.ambient)
+		sphere.material.ambient.setHex( parameters.colorA.replace("#", "0x") );
+    if (sphere.material.emissive)
+		sphere.material.emissive.setHex( parameters.colorE.replace("#", "0x") ); 
+	if (sphere.material.specular)
+		sphere.material.specular.setHex( parameters.colorS.replace("#", "0x") ); 
+    if (sphere.material.shininess)
+		sphere.material.shininess = parameters.shininess;
+	sphere.material.opacity = parameters.opacity;  
+	sphere.material.transparent = true;
 
 }
 
@@ -293,25 +247,25 @@ function resetSphere()
 	updateSphere();
 }
 
-function animate()
+function animate() 
 {
     requestAnimationFrame( animate );
-	render();
+	render();		
 	update();
 }
 
 function update()
 {
-	if ( keyboard.pressed("z") )
-	{
+	if ( keyboard.pressed("z") ) 
+	{ 
 		// do something
 	}
-
+	
 	controls.update();
 	stats.update();
 }
 
-function render()
+function render() 
 {
 	renderer.render( scene, camera );
 }
