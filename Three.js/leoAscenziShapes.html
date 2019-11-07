@@ -53,6 +53,7 @@ var cone;
 var ring;
 var torus;
 var shape;
+var light;
 
 var objects =[];
 init();
@@ -90,19 +91,19 @@ function init()
 	stats.domElement.style.zIndex = 100;
 	container.appendChild( stats.domElement );
 	// LIGHT
-	var light = new THREE.PointLight(0xffffff);
+	light = new THREE.PointLight(0xffffff);
 	light.position.set(-100,150,100);
 	scene.add(light);
-	
+
 	// need to add an ambient light
 	//  for ambient colors to be visible
 	// make the ambient light darker so that
 	//  it doesn't overwhelm (like emmisive light)
-	var light2 = new THREE.AmbientLight(0x333333); 
+	var light2 = new THREE.AmbientLight(0x333333);
 	light2.position.set( light.position );
 	scene.add(light2);
-	
-	
+
+
 	var lightbulbGeometry = new THREE.SphereGeometry( 10, 16, 8 );
 	var lightbulbMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, transparent: true,  opacity: 0.8, blending: THREE.AdditiveBlending } );
 	var wireMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } );
@@ -111,13 +112,13 @@ function init()
 	lightbulb.position = light.position;
 	scene.add(lightbulb);
 	scene.add(light);
-	
-	
-	
+
+
+
 	// FLOOR
 	var floorTexture = new THREE.ImageUtils.loadTexture( 'images/grass.jpg');
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
-	floorTexture.repeat.set(1,1);
+	floorTexture.repeat.set(10,10);
 
 
 	var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide });
@@ -149,7 +150,7 @@ function init()
 	///////////
 	// ROW 1 //
 	///////////
-//	
+//
 //	var sphereGeometry = new THREE.SphereGeometry( 100, 50, 50 );
 //	var sphereMaterial = new THREE.MeshPhongMaterial( { color:0xff0000, transparent:true, opacity:1 } );
 //	sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
@@ -158,7 +159,7 @@ function init()
 
 	var axes = new THREE.AxisHelper(10);
 	scene.add(axes);
-	
+
 //	// cube
 	cube = new THREE.Mesh(new THREE.CubeGeometry(100,100,100,1,1,1), shapeMaterial);
 	cube.position.set(-250, 50, 0);
@@ -207,36 +208,36 @@ function init()
 
 
 gui = new dat.GUI();
-	
-	parameters = 
+
+	parameters =
 	{
-		x: 0, y: 30, z: 0,
+		x: light.position.x, y: light.position.y, z: light.position.z,
 		color:  "#ff0000", // color (change "#" to "0x")
 		colorA: "#000000", // color (change "#" to "0x")
 		colorE: "#000033", // color (change "#" to "0x")
 		colorS: "#ffff00", // color (change "#" to "0x")
         shininess: 30,
-		opacity: 1, 
+		opacity: 1,
 		visible: true,
 		material: "Phong",
 		reset: function() { resetShapes() }
 	};
-	
-	
+
+
 	var folder1 = gui.addFolder('Light Position');
 	var lightX = folder1.add( parameters, 'x' ).min(-300).max(300).step(1).listen();
 	var lightY = folder1.add( parameters, 'y' ).min(0).max(300).step(1).listen();
 	var lightZ = folder1.add( parameters, 'z' ).min(-200).max(200).step(1).listen();
 	folder1.open();
-	
-	lightX.onChange(function(value) 
+
+	lightX.onChange(function(value)
 	{   light.position.x = value;   });
-	lightY.onChange(function(value) 
+	lightY.onChange(function(value)
 	{   light.position.y = value;   });
-	lightZ.onChange(function(value) 
+	lightZ.onChange(function(value)
 	{   light.position.z = value;   });
-	
-	
+
+
 	var lightColor = gui.addColor( parameters, 'color' ).name('Color (Diffuse)').listen();
 	lightColor.onChange(function(value) // onFinishChange
 	{   for(var i = 0; i < objects.length; i++){var currentMat = objects[i];currentMat.material.color.setHex( value.replace("#", "0x") ); }  });
@@ -255,21 +256,24 @@ gui = new dat.GUI();
 	var lightOpacity = gui.add( parameters, 'opacity' ).min(0).max(1).step(0.01).name('Opacity').listen();
 	lightOpacity.onChange(function(value)
 	{   for(var i = 0; i < objects.length; i++){var currentMat = objects[i];currentMat.material.opacity = value; }  });
-	
+
 	var lightMaterial = gui.add( parameters, 'material', [ "Basic", "Lambert", "Phong", "Wireframe" ] ).name('Material Type').listen();
-	lightMaterial.onChange(function(value) 
+	lightMaterial.onChange(function(value)
 	{   updateShapes();   });
-		
+
 	gui.add( parameters, 'reset' ).name("Reset light Parameters");
-	
+
 	gui.open();
 	updateShapes();
-	
-	
+
+
 }
 
 function updateShapes()
 {
+	light.position.x = parameters.x;
+	light.position.y = parameters.y;
+	light.position.z = parameters.z;
 	for(var i = 0; i < objects.length; i++){
 		var currentMat = objects[i];
 		var value = parameters.material;
@@ -288,12 +292,12 @@ function updateShapes()
 		if (currentMat.material.ambient)
 			currentMat.material.ambient.setHex( parameters.colorA.replace("#", "0x") );
 		if (currentMat.material.emissive)
-			currentMat.material.emissive.setHex( parameters.colorE.replace("#", "0x") ); 
+			currentMat.material.emissive.setHex( parameters.colorE.replace("#", "0x") );
 		if (currentMat.material.specular)
-			currentMat.material.specular.setHex( parameters.colorS.replace("#", "0x") ); 
+			currentMat.material.specular.setHex( parameters.colorS.replace("#", "0x") );
 		if (currentMat.material.shininess)
 			currentMat.material.shininess = parameters.shininess;
-		currentMat.material.opacity = parameters.opacity;  
+		currentMat.material.opacity = parameters.opacity;
 		currentMat.material.transparent = true;
 	}
 
@@ -302,9 +306,9 @@ function updateShapes()
 
 function resetShapes()
 {
-	parameters.x = 0;
-	parameters.y = 30;
-	parameters.z = 0;
+	parameters.x = -100;
+	parameters.y = 150;
+	parameters.z = 100;
 	parameters.color = "#ff0000";
 	parameters.colorA = "#000000";
 	parameters.colorE = "#000033";
@@ -314,6 +318,7 @@ function resetShapes()
 	parameters.visible = true;
 	parameters.material = "Phong";
 	updateShapes();
+	//light.position.set(-100,150,100);
 }
 
 function animate()
