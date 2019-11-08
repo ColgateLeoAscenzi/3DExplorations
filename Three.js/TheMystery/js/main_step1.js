@@ -111,6 +111,20 @@ var AirPlane = function(){
 
   this.mesh      = new THREE.Object3D();
   this.mesh.name = "airPlane";
+	
+	  // Create the Cabin
+  var geomHead = new THREE.BoxGeometry(20, 20, 20, 1, 1, 1);
+  var matHead  = new THREE.MeshPhongMaterial(
+                             { color : Colors.pink,
+                             shading : THREE.FlatShading });
+	
+  var head = new THREE.Mesh(geomHead, matHead);
+
+  head.castShadow = true;
+  head.receiveShadow = true;
+
+  head.position.y = 40;
+  this.mesh.add(head);
 
   // Create the Cabin
   geomCockpit = new THREE.BoxGeometry(60, 50, 50, 1, 1, 1);
@@ -324,10 +338,24 @@ function updatePlane() {
 
   }
   else{
+	  if(!turningLeft && !turningRight){
+
+		  airplane.mesh.rotation.x -= airplane.mesh.rotation.x/8;
+		  airplane.mesh.rotation.y -= airplane.mesh.rotation.y/8;
+		  
+
+	  }
       //handles smooth updates
         if(turningLeft){
 			if(airplane.mesh.rotation.y -turnSpeed < -0.60){
 				if(airplane.mesh.rotation.y < 0.1){
+					if(airplane.mesh.rotation.x  + 0.05 > 0.4){
+						airplane.mesh.rotation.x = 0.4;
+					}
+					else{
+						airplane.mesh.rotation.x += 0.05;
+					}
+					
 					airplane.mesh.position.z += 5;
 				}
 				
@@ -346,13 +374,21 @@ function updatePlane() {
         if(turningRight){
 			if(airplane.mesh.rotation.y + turnSpeed > 0.60){
 				if(airplane.mesh.rotation.y > 0.1){
+					if(airplane.mesh.rotation.x  - 0.05 < -0.4){
+						airplane.mesh.rotation.x = -0.4;
+					}
+					else{
+						airplane.mesh.rotation.x -= 0.05;
+					}
 					airplane.mesh.position.z -= 5;
+					
 				}
 				airplane.mesh.rotation.y = 0.60
 			}
 			else{
 				if(airplane.mesh.rotation.y > 0.1){
 					airplane.mesh.position.z -= 5;
+					
 				}
 				airplane.mesh.rotation.y += turnSpeed;
 			}
@@ -482,10 +518,7 @@ function handleKeyDown(keyEvent){
            console.log("First person on");
            //add camera offset above plane and look forward
            altitude = airplane.mesh.position.y;
-           camera.position.z = airplane.mesh.position.z;
-           camera.position.x = airplane.mesh.position.x-100;
-           camera.position.y = airplane.mesh.position.y+100;
-           camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z));
+		   updatePlaneView();
        }
        //adds new fixed sky for new perspective
        createSky();
