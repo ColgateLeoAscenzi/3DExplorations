@@ -326,10 +326,37 @@ function updatePlane() {
   else{
       //handles smooth updates
         if(turningLeft){
-            airplane.mesh.rotation.y -= turnSpeed;
+			if(airplane.mesh.rotation.y -turnSpeed < -0.60){
+				if(airplane.mesh.rotation.y < 0.1){
+					airplane.mesh.position.z += 5;
+				}
+				
+				airplane.mesh.rotation.y = -0.60
+			}
+			else{
+				if(airplane.mesh.rotation.y < 0.1){
+					airplane.mesh.position.z += 5;
+				}
+				airplane.mesh.rotation.y -= turnSpeed;
+			}
+			updatePlaneView()
+			
+            
         }
         if(turningRight){
-            airplane.mesh.rotation.y += turnSpeed;
+			if(airplane.mesh.rotation.y + turnSpeed > 0.60){
+				if(airplane.mesh.rotation.y > 0.1){
+					airplane.mesh.position.z -= 5;
+				}
+				airplane.mesh.rotation.y = 0.60
+			}
+			else{
+				if(airplane.mesh.rotation.y > 0.1){
+					airplane.mesh.position.z -= 5;
+				}
+				airplane.mesh.rotation.y += turnSpeed;
+			}
+			updatePlaneView()
         }
         if(goingUp){
             airplane.mesh.position.y += altSpeed;
@@ -343,7 +370,7 @@ function updatePlane() {
 
 // turn on and off propeller
   if(propellerOn){
-      airplane.propeller.rotation.x += 0.3;
+      airplane.propeller.rotation.x += 0.5;
   }
   else{
       airplane.propeller.rotation.x += 0;
