@@ -13,6 +13,8 @@ var goingDown = false;
 
 var turnSpeed = 0.05;
 var altSpeed = 5;
+
+var unlockedCamera = false;
 //COLORS
 var Colors = {
     red:0xf25346,
@@ -104,6 +106,77 @@ function createLights() {
 
   scene.add(hemisphereLight);
   scene.add(shadowLight);
+	
+}
+
+var Pilot = function(){
+	this.mesh      = new THREE.Object3D();
+	this.mesh.name = "Pilot";
+	
+	var geomEye = new THREE.BoxGeometry(3, 3, 3, 1, 1, 1);
+    var matEye  = new THREE.MeshPhongMaterial(
+                             { color : 0x000000,
+                             shading : THREE.FlatShading });
+	
+    var eye = new THREE.Mesh(geomEye, matEye);
+
+    eye.castShadow = true;
+    eye.receiveShadow = true;
+
+    eye.position.y = 45;
+	eye.position.x = 10;
+	eye.position.z = -5;
+	var eye2 = eye.clone();
+	
+	eye2.position.x = 10;
+	eye2.position.z = 5;
+    this.mesh.add(eye);
+	this.mesh.add(eye2);
+	
+	
+	
+	//nose
+	
+	var geomNose = new THREE.BoxGeometry(3, 3, 3, 1, 1, 1);
+    var matNose  = new THREE.MeshPhongMaterial(
+                             { color : Colors.pink,
+                             shading : THREE.FlatShading });
+	
+    var nose = new THREE.Mesh(geomNose, matNose);
+
+    nose.castShadow = true;
+    nose.receiveShadow = true;
+
+    nose.position.y = 40;
+	nose.position.x = 10;
+	nose.position.z = 0;
+	this.mesh.add(nose);
+	
+	
+	//beanie
+	var geomBeanie = new THREE.BoxGeometry(22, 10, 22, 1, 1, 1);
+    var matBeanie  = new THREE.MeshPhongMaterial(
+                             { color : 0x6d727a,
+                             shading : THREE.FlatShading });
+	
+    var beanie = new THREE.Mesh(geomBeanie, matBeanie);
+	beanie.position.y = 50;
+	beanie.castShadow = true;
+    beanie.receiveShadow = true;
+	this.mesh.add(beanie);
+	
+	var geomBeanie = new THREE.BoxGeometry(19, 20, 19, 1, 1, 1);
+    var matBeanie  = new THREE.MeshPhongMaterial(
+                             { color : 0x6d727a,
+                             shading : THREE.FlatShading });
+	
+    var beanie = new THREE.Mesh(geomBeanie, matBeanie);
+	beanie.position.y = 50;
+	beanie.castShadow = true;
+    beanie.receiveShadow = true;
+	this.mesh.add(beanie);
+	
+	return this.mesh;
 }
 
 var geomCockpit;
@@ -125,6 +198,8 @@ var AirPlane = function(){
 
   head.position.y = 40;
   this.mesh.add(head);
+	
+  this.mesh.add(Pilot());
 
   // Create the Cabin
   geomCockpit = new THREE.BoxGeometry(60, 50, 50, 1, 1, 1);
@@ -328,6 +403,12 @@ function loop() {
   }
 }
 
+function unTilt(fixSpeed){
+	airplane.mesh.rotation.x -= airplane.mesh.rotation.x/fixSpeed;
+	airplane.mesh.rotation.y -= airplane.mesh.rotation.y/fixSpeed;
+	airplane.mesh.rotation.z -= airplane.mesh.rotation.z/fixSpeed;
+}
+
 function updatePlane() {
     //engage first person controls
   if(!firstPerson){
@@ -338,11 +419,8 @@ function updatePlane() {
 
   }
   else{
-	  if(!turningLeft && !turningRight){
-
-		  airplane.mesh.rotation.x -= airplane.mesh.rotation.x/8;
-		  airplane.mesh.rotation.y -= airplane.mesh.rotation.y/8;
-		  
+	  if(!turningLeft && !turningRight && !goingUp && !goingDown){
+		  unTilt(8);
 
 	  }
       //handles smooth updates
@@ -396,10 +474,25 @@ function updatePlane() {
         }
         if(goingUp){
             airplane.mesh.position.y += altSpeed;
+			if(airplane.mesh.rotation.z + 0.1> 0.35){
+				airplane.mesh.rotation.z = 0.35
+			}
+			else{
+				airplane.mesh.rotation.z += 0.1;
+			}
+			
             updatePlaneView()
         }
         if(goingDown){
-            airplane.mesh.position.y -= altSpeed;
+			airplane.mesh.position.y -= altSpeed;
+			if(airplane.mesh.rotation.z -0.01 < -0.35){
+				airplane.mesh.rotation.z = -0.35;
+			}
+			else{
+				airplane.mesh.rotation.z -= 0.1;
+			}
+            
+			
             updatePlaneView()
         }
   }
@@ -416,11 +509,20 @@ function updatePlane() {
 }
 
 function updatePlaneView(){
+	
+	if(!unlockedCamera){
+		camera.position.z = airplane.mesh.position.z;
+    	camera.position.x = airplane.mesh.position.x-100;
+    	camera.position.y = airplane.mesh.position.y+100;
+    	camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z));
+	}
+	else{
+	  camera.position.x = 0;
+      camera.position.z = 200;
+      camera.position.y = 100;
+      camera.lookAt(new THREE.Vector3(defaultPlanePos[0],  defaultPlanePos[1], defaultPlanePos[2]))
+	}
 
-    camera.position.z = airplane.mesh.position.z;
-    camera.position.x = airplane.mesh.position.x-100;
-    camera.position.y = airplane.mesh.position.y+100;
-    camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z));
 }
 
 function normalize(v, vmin, vmax, tmin, tmax) {
@@ -490,6 +592,15 @@ function handleKeyDown(keyEvent){
        paused = true;
        console.log("game paused");
      }
+   }
+   if(keyEvent.key == "c"){
+	   if(unlockedCamera){
+		   unlockedCamera = false;
+	   }
+	   else{
+		   unlockedCamera = true;
+	   }
+		
    }
    if(keyEvent.key == " "){
      if(propellerOn){
