@@ -3,7 +3,16 @@
 
 var propellerOn = true;
 var paused = false;
+var firstPerson = false;
+var altitude = 0;
 
+var turningLeft = false;
+var turningRight = false;
+var goingUp = false;
+var goingDown = false;
+
+var turnSpeed = 0.05;
+var altSpeed = 5;
 //COLORS
 var Colors = {
     red:0xf25346,
@@ -51,6 +60,8 @@ function createScene() {
   camera.position.z = 200;
   camera.position.y = 100;
 
+  var defaultPlanePos = [0,0,0];
+
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setSize(WIDTH, HEIGHT);
   renderer.shadowMap.enabled = true;
@@ -95,14 +106,14 @@ function createLights() {
   scene.add(shadowLight);
 }
 
-
+var geomCockpit;
 var AirPlane = function(){
 
   this.mesh      = new THREE.Object3D();
   this.mesh.name = "airPlane";
 
   // Create the Cabin
-  var geomCockpit = new THREE.BoxGeometry(60, 50, 50, 1, 1, 1);
+  geomCockpit = new THREE.BoxGeometry(60, 50, 50, 1, 1, 1);
   var matCockpit  = new THREE.MeshPhongMaterial(
                              { color : Colors.red,
                              shading : THREE.FlatShading });
@@ -190,7 +201,13 @@ var AirPlane = function(){
 Sky = function() {
   this.mesh = new THREE.Object3D();
 
-  this.nClouds = 20;
+  if(firstPerson){
+      this.nClouds = 100;
+
+  }
+  else{
+     this.nClouds = 20;
+  }
   this.clouds = [];
   var stepAngle = Math.PI*2 / this.nClouds;
   for (var i = 0; i < this.nClouds; i++) {
@@ -201,7 +218,14 @@ Sky = function() {
 
     c.mesh.position.y = Math.sin(a) * h;
     c.mesh.position.x = Math.cos(a) * h;
-    c.mesh.position.z = -400 - Math.random() * 400;
+    if(firstPerson){
+        c.mesh.position.z = -400 + Math.random() * 800;
+
+    }
+    else{
+        c.mesh.position.z = -400 - Math.random() * 400;
+
+    }
     c.mesh.rotation.z = a + Math.PI/2;
 
     var s = 1 + Math.random() * 2;
@@ -263,6 +287,7 @@ function createPlane() {
   airplane = new AirPlane();
   airplane.mesh.scale.set(.25, .25, .25);
   airplane.mesh.position.y = 100;
+  defaultPlanePos = [airplane.mesh.position.x, airplane.mesh.position.y,airplane.mesh.position.z];
   scene.add(airplane.mesh);
 }
 
@@ -290,11 +315,49 @@ function loop() {
 }
 
 function updatePlane() {
-  var targetY = normalize(mousePos.y, -.75, .75,   25, 175);
-  var targetX = normalize(mousePos.x, -.75, .75, -100, 100);
-  airplane.mesh.position.y = targetY;
-  airplane.mesh.position.x = targetX;
-  airplane.propeller.rotation.x += 0.3;
+    //engage first person controls
+  if(!firstPerson){
+      var targetY = normalize(mousePos.y, -.75, .75,   25, 175);
+      var targetX = normalize(mousePos.x, -.75, .75, -100, 100);
+      airplane.mesh.position.y = targetY;
+      airplane.mesh.position.x = targetX;
+
+  }
+  else{
+      //handles smooth updates
+        if(turningLeft){
+            airplane.mesh.rotation.y -= turnSpeed;
+        }
+        if(turningRight){
+            airplane.mesh.rotation.y += turnSpeed;
+        }
+        if(goingUp){
+            airplane.mesh.position.y += altSpeed;
+            updatePlaneView()
+        }
+        if(goingDown){
+            airplane.mesh.position.y -= altSpeed;
+            updatePlaneView()
+        }
+  }
+
+// turn on and off propeller
+  if(propellerOn){
+      airplane.propeller.rotation.x += 0.3;
+  }
+  else{
+      airplane.propeller.rotation.x += 0;
+  }
+
+
+}
+
+function updatePlaneView(){
+
+    camera.position.z = airplane.mesh.position.z;
+    camera.position.x = airplane.mesh.position.x-100;
+    camera.position.y = airplane.mesh.position.y+100;
+    camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z));
 }
 
 function normalize(v, vmin, vmax, tmin, tmax) {
@@ -311,6 +374,7 @@ function normalize(v, vmin, vmax, tmin, tmax) {
 function init(event) {
   document.addEventListener('mousemove', handleMouseMove, false);
   document.onkeydown = handleKeyDown;
+  document.onkeyup = handleKeyUp;
 
   createScene();
   createLights();
@@ -325,14 +389,30 @@ function init(event) {
 var mousePos = { x: 0, y: 0 };
 
 function handleMouseMove(event) {
-  var tx = -1 + (event.clientX / WIDTH)*2;
-  var ty = 1 - (event.clientY / HEIGHT)*2;
-  mousePos = {x:tx, y:ty};
+    if(! firstPerson){
+        var tx = -1 + (event.clientX / WIDTH)*2;
+        var ty = 1 - (event.clientY / HEIGHT)*2;
+        mousePos = {x:tx, y:ty};
+    }
+
 }
 
 window.addEventListener('load', init, false);
 
-
+function handleKeyUp(keyEvent){
+    if(keyEvent.key == "a"){
+        turningRight = false;
+    }
+    if(keyEvent.key == "d"){
+        turningLeft = false;
+    }
+    if(keyEvent.key == "w"){
+        goingUp = false;
+    }
+    if(keyEvent.key == "s"){
+        goingDown = false;
+    }
+}
 function handleKeyDown(keyEvent){
 //https://javascript.info/keyboard-events
    //console.log(keyEvent.key);
@@ -357,7 +437,55 @@ function handleKeyDown(keyEvent){
        propellerOn = true;
        console.log("Properller started");
      }
+  }
+   if(keyEvent.key == "x"){
+       //removes old sky
+       scene.remove(sky.mesh);
+       if(firstPerson){
+           firstPerson = false;
+           console.log("First person off");
+           camera.position.x = 0;
+           camera.position.z = 200;
+           camera.position.y = 100;
+           //reset to captured values from createPlane()
+           camera.lookAt(new THREE.Vector3(defaultPlanePos[0],  defaultPlanePos[1], defaultPlanePos[2]))
+       }
+       else{
+           firstPerson = true;
+           console.log("First person on");
+           //add camera offset above plane and look forward
+           altitude = airplane.mesh.position.y;
+           camera.position.z = airplane.mesh.position.z;
+           camera.position.x = airplane.mesh.position.x-100;
+           camera.position.y = airplane.mesh.position.y+100;
+           camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z));
+       }
+       //adds new fixed sky for new perspective
+       createSky();
+       scene.add(sky.mesh);
 
    }
 
+   if(keyEvent.key == "w"){
+       goingUp = true;
+
+
+   }
+
+   if(keyEvent.key == "s"){
+       goingDown = true;
+
+   }
+
+
+     if(keyEvent.key == "a"){
+         turningRight = true;
+
+     }
+
+     if(keyEvent.key == "d"){
+         turningLeft = true;
+
+
+    }
 }
