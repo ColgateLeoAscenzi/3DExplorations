@@ -220,6 +220,9 @@ function createSky() {
 
 function createBullet(){
     var bullet = new Projectile();
+    bullet.mesh.position.x = airplane.mesh.position.x;
+    bullet.mesh.position.y = airplane.mesh.position.y;
+    bullet.mesh.position.z = airplane.mesh.position.z+20;
     scene.add(bullet.mesh);
 }
 
@@ -390,7 +393,7 @@ function init(event) {
   createPlane();
   createSea();
   createSky();
-  createBullet();
+
   loop();
 }
 
@@ -451,6 +454,7 @@ function handleKeyDown(keyEvent){
      if(propellerOn){
        propellerOn = false;
        console.log("Properller stopped");
+         createBullet();
      }
      else{
        propellerOn = true;

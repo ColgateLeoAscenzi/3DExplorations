@@ -4,7 +4,7 @@ var Projectile = function(){
   this.mesh.name = "Projectile";
 
 
-  var geomProjMiddle = new THREE.BoxGeometry(20, 20, 20, 1, 1, 1);
+  var geomProjMiddle = new THREE.BoxGeometry(8, 2, 2, 1, 1, 1);
   var matProjMiddle  = new THREE.MeshPhongMaterial(
                              { color : 0x000000,
                              shading : THREE.FlatShading });
@@ -14,7 +14,6 @@ var Projectile = function(){
   projMiddle.castShadow = false;
   projMiddle.receiveShadow = false;
 
-  projMiddle.position.y = 40;
   this.mesh.add(projMiddle);
 
 };
