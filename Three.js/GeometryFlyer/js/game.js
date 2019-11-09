@@ -10,6 +10,7 @@ var turningLeft = false;
 var turningRight = false;
 var goingUp = false;
 var goingDown = false;
+var shooting = false;
 
 var turnSpeed = 0.05;
 var altSpeed = 5;
@@ -17,6 +18,8 @@ var altSpeed = 5;
 var projectiles = [];
 
 var unlockedCamera = false;
+
+
 //COLORS
 var Colors = {
     red:0xf25346,
@@ -265,6 +268,10 @@ function unTilt(fixSpeed){
 }
 
 function updatePlane() {
+  if(shooting){
+    createBullet(airplane.mesh.position.x, airplane.mesh.position.y, airplane.mesh.position.z+18);
+    createBullet(airplane.mesh.position.x, airplane.mesh.position.y, airplane.mesh.position.z-18);
+  }
     //engage first person controls
   if(!firstPerson){
       var targetY = normalize(mousePos.y, -.75, .75,   25, 175);
@@ -281,7 +288,7 @@ function updatePlane() {
 
 
       //handles smooth updates
-        if(turningLeft){
+    if(turningLeft){
 			if(airplane.mesh.rotation.y -turnSpeed < -0.60){
 				if(airplane.mesh.rotation.y < 0.1){
 					if(airplane.mesh.rotation.x  + 0.05 > 0.4){
@@ -302,11 +309,11 @@ function updatePlane() {
 				}
 				airplane.mesh.rotation.y -= turnSpeed;
 			}
-			updatePlaneView()
 
 
-        }
-        if(turningRight){
+
+    }
+    if(turningRight){
 			if(airplane.mesh.rotation.y + turnSpeed > 0.60){
 				if(airplane.mesh.rotation.y > 0.1){
 					if(airplane.mesh.rotation.x  - 0.05 < -0.4){
@@ -327,9 +334,9 @@ function updatePlane() {
 				}
 				airplane.mesh.rotation.y += turnSpeed;
 			}
-			updatePlaneView()
-        }
-        if(goingUp){
+
+    }
+    if(goingUp){
             airplane.mesh.position.y += altSpeed;
 			if(airplane.mesh.rotation.z + 0.1> 0.35){
 				airplane.mesh.rotation.z = 0.35
@@ -337,9 +344,9 @@ function updatePlane() {
 			else{
 				airplane.mesh.rotation.z += 0.1;
 			}
-            updatePlaneView()
-        }
-        if(goingDown){
+
+    }
+    if(goingDown){
 			airplane.mesh.position.y -= altSpeed;
 			if(airplane.mesh.rotation.z -0.01 < -0.35){
 				airplane.mesh.rotation.z = -0.35;
@@ -347,8 +354,11 @@ function updatePlane() {
 			else{
 				airplane.mesh.rotation.z -= 0.1;
 			}
-            updatePlaneView()
-        }
+
+    }
+
+
+        updatePlaneView()
   }
 
 // turn on and off propeller
@@ -445,6 +455,9 @@ function handleKeyUp(keyEvent){
     if(keyEvent.key == "s"){
         goingDown = false;
     }
+    if(keyEvent.key == " "){
+        shooting = false;
+    }
 }
 function handleKeyDown(keyEvent){
 //https://javascript.info/keyboard-events
@@ -471,9 +484,7 @@ function handleKeyDown(keyEvent){
 
    }
    if(keyEvent.key == " "){
-       createBullet(airplane.mesh.position.x, airplane.mesh.position.y, airplane.mesh.position.z+20);
-       createBullet(airplane.mesh.position.x, airplane.mesh.position.y, airplane.mesh.position.z-20);
-
+     shooting = true;
 
   }
   if(keyEvent.key == "h"){
