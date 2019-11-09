@@ -225,8 +225,16 @@ function createBullet(x, y, z){
     bullet.mesh.position.x = x;
     bullet.mesh.position.y = y;
     bullet.mesh.position.z = z;
+    // var muzzleFlash = new THREE.AmbientLight(Colors.red, 0.9);;
+    // muzzleFlash.position.set(bullet.mesh.position );
+    // scene.add(muzzleFlash);
     scene.add(bullet.mesh);
-    projectiles.push(bullet);
+    projectiles.push(bullet)
+
+    setTimeout(function(){
+        scene.remove(bullet.mesh);}, 1000);
+    // setTimeout(function(){
+    //     scene.remove(muzzleFlash);}, 10);
 }
 
 function updateProjectiles(){
