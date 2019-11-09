@@ -278,6 +278,8 @@ function updatePlane() {
 		  unTilt(8);
 
 	  }
+
+      
       //handles smooth updates
         if(turningLeft){
 			if(airplane.mesh.rotation.y -turnSpeed < -0.60){
@@ -335,7 +337,6 @@ function updatePlane() {
 			else{
 				airplane.mesh.rotation.z += 0.1;
 			}
-
             updatePlaneView()
         }
         if(goingDown){
@@ -346,8 +347,6 @@ function updatePlane() {
 			else{
 				airplane.mesh.rotation.z -= 0.1;
 			}
-
-
             updatePlaneView()
         }
   }
