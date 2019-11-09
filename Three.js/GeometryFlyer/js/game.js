@@ -279,7 +279,7 @@ function updatePlane() {
 
 	  }
 
-      
+
       //handles smooth updates
         if(turningLeft){
 			if(airplane.mesh.rotation.y -turnSpeed < -0.60){
