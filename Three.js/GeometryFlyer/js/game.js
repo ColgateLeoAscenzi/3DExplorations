@@ -218,6 +218,11 @@ function createSky() {
   scene.add(sky.mesh);
 }
 
+function createBullet(){
+    var bullet = new Projectile();
+    scene.add(bullet.mesh);
+}
+
 function loop() {
   updatePlane();
   sea.mesh.rotation.z += .005;
@@ -385,6 +390,7 @@ function init(event) {
   createPlane();
   createSea();
   createSky();
+  createBullet();
   loop();
 }
 

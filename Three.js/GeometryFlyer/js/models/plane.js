@@ -76,6 +76,32 @@ var AirPlane = function(){
   this.mesh.add(sideWing);
 
 
+  var geomGun = new THREE.BoxGeometry(65, 8, 8, 1, 1, 1);
+  var matGun  = new THREE.MeshPhongMaterial(
+                              { color : 0x000000,
+                              shading : THREE.FlatShading });
+
+  var gun1 = new THREE.Mesh(geomGun, matGun);
+  gun1.position.set(10,-8,75);
+  gun1.castShadow = true;
+  gun1.receiveShadow = true;
+
+  this.mesh.add(gun1);
+
+  var geomGun2 = new THREE.BoxGeometry(65, 8, 8, 1, 1, 1);
+  var matGun2  = new THREE.MeshPhongMaterial(
+                              { color : 0x000000,
+                              shading : THREE.FlatShading });
+
+  var gun2 = new THREE.Mesh(geomGun2, matGun2);
+  gun2.position.set(10,-8,-75);
+  gun2.castShadow = true;
+  gun2.receiveShadow = true;
+
+  this.mesh.add(gun2);
+
+
+
   // Propeller
   var geomPropeller = new THREE.BoxGeometry(20, 10, 10, 1, 1, 1);
   var matPropeller  = new THREE.MeshPhongMaterial(
