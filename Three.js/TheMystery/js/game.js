@@ -156,6 +156,7 @@ function handleMouseMove(event) {
   var tx = -1 + (event.clientX / WIDTH)*2;
   var ty = 1 - (event.clientY / HEIGHT)*2;
   mousePos = {x:tx, y:ty};
+
 }
 
 function handleTouchMove(event) {
@@ -229,7 +230,7 @@ var Pilot = function(){
   var face = new THREE.Mesh(faceGeom, faceMat);
   this.mesh.add(face);
 
-  var hairGeom = new THREE.BoxGeometry(4,4,4);
+  var hairGeom = new THREE.BoxGeometry(2,4,2);
   var hairMat = new THREE.MeshLambertMaterial({color:Colors.brown});
   var hair = new THREE.Mesh(hairGeom, hairMat);
   hair.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,2,0));
@@ -237,13 +238,13 @@ var Pilot = function(){
 
   this.hairsTop = new THREE.Object3D();
 
-  for (var i=0; i<12; i++){
+  for (var i=0; i<48; i++){
     var h = hair.clone();
-    var col = i%3;
-    var row = Math.floor(i/3);
+    var col = i%6;
+    var row = Math.floor(i/6);
     var startPosZ = -4;
     var startPosX = -4;
-    h.position.set(startPosX + row*4, 0, startPosZ + col*4);
+    h.position.set(startPosX + row*2, 0, startPosZ + col*2);
     h.geometry.applyMatrix(new THREE.Matrix4().makeScale(1,1,1));
     this.hairsTop.add(h);
   }
@@ -295,7 +296,7 @@ Pilot.prototype.updateHairs = function(){
    var l = hairs.length;
    for (var i=0; i<l; i++){
       var h = hairs[i];
-      h.scale.y = .75 + Math.cos(this.angleHairs+i/3)*.25;
+      h.scale.y = .75 + Math.cos(this.angleHairs+i/5)*.125;
    }
   this.angleHairs += game.speed*deltaTime*40;
   //*/
@@ -940,7 +941,7 @@ function updatePlane(){
   airplane.mesh.position.x += (targetX-airplane.mesh.position.x)*deltaTime*game.planeMoveSensivity;
 
   airplane.mesh.rotation.z = (targetY-airplane.mesh.position.y)*deltaTime*game.planeRotXSensivity;
-  airplane.mesh.rotation.x = (airplane.mesh.position.y-targetY)*deltaTime*game.planeRotZSensivity;
+  //airplane.mesh.rotation.x = (airplane.mesh.position.y-targetY)*deltaTime*game.planeRotZSensivity;
   var targetCameraZ = normalize(game.planeSpeed, game.planeMinSpeed, game.planeMaxSpeed, game.cameraNearPos, game.cameraFarPos);
   camera.fov = normalize(mousePos.x,-1,1,40, 80);
   camera.updateProjectionMatrix ()
@@ -952,6 +953,11 @@ function updatePlane(){
   game.planeCollisionDisplacementY += (0-game.planeCollisionDisplacementY)*deltaTime *0.01;
 
   airplane.pilot.updateHairs();
+
+  camera.position.z = airplane.mesh.position.z+10;
+    camera.position.x = airplane.mesh.position.x-20;
+    camera.position.y = airplane.mesh.position.y+20;
+    camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z));
 }
 
 function showReplay(){
