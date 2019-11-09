@@ -14,6 +14,8 @@ var goingDown = false;
 var turnSpeed = 0.05;
 var altSpeed = 5;
 
+var projectiles = [];
+
 var unlockedCamera = false;
 //COLORS
 var Colors = {
@@ -218,16 +220,27 @@ function createSky() {
   scene.add(sky.mesh);
 }
 
-function createBullet(){
+function createBullet(x, y, z){
     var bullet = new Projectile();
-    bullet.mesh.position.x = airplane.mesh.position.x;
-    bullet.mesh.position.y = airplane.mesh.position.y;
-    bullet.mesh.position.z = airplane.mesh.position.z+20;
+    bullet.mesh.position.x = x;
+    bullet.mesh.position.y = y;
+    bullet.mesh.position.z = z;
     scene.add(bullet.mesh);
+    projectiles.push(bullet);
 }
+
+function updateProjectiles(){
+    for(var i = 0; i < projectiles.length; i++){
+        projectiles[i].mesh.position.x += 10;
+    //     setTimeout(function(){
+    //         scene.remove(projectiles[i].mesh);}, 1000);
+    }
+}
+
 
 function loop() {
   updatePlane();
+  updateProjectiles();
   sea.mesh.rotation.z += .005;
   sky.mesh.rotation.z += .01;
   renderer.render(scene, camera);
@@ -451,15 +464,21 @@ function handleKeyDown(keyEvent){
 
    }
    if(keyEvent.key == " "){
-     if(propellerOn){
-       propellerOn = false;
-       console.log("Properller stopped");
-         createBullet();
-     }
-     else{
-       propellerOn = true;
-       console.log("Properller started");
-     }
+       createBullet(airplane.mesh.position.x, airplane.mesh.position.y, airplane.mesh.position.z+20);
+       createBullet(airplane.mesh.position.x, airplane.mesh.position.y, airplane.mesh.position.z-20);
+
+
+  }
+  if(keyEvent.key == "h"){
+      if(propellerOn){
+        propellerOn = false;
+        console.log("Properller stopped");
+
+      }
+      else{
+        propellerOn = true;
+        console.log("Properller started");
+      }
   }
    if(keyEvent.key == "x"){
        //removes old sky
