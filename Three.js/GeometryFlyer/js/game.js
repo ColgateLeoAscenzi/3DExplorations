@@ -20,6 +20,7 @@ var projectiles = [];
 var unlockedCamera = false;
 
 
+
 //COLORS
 var Colors = {
     red:0xf25346,
@@ -117,6 +118,7 @@ function createLights() {
 }
 
 var geomCockpit;
+var enemiesArr = [];
 
 Sky = function() {
   this.mesh = new THREE.Object3D();
@@ -132,25 +134,33 @@ Sky = function() {
   var stepAngle = Math.PI*2 / this.nClouds;
   for (var i = 0; i < this.nClouds; i++) {
     var c = new Cloud();
+    var e = new Enemy();
     this.clouds.push(c);
     var a = stepAngle * i;
     var h = 750 + Math.random() * 200;
+    var h2 = 750 + Math.random() * 200;
 
     c.mesh.position.y = Math.sin(a) * h;
     c.mesh.position.x = Math.cos(a) * h;
+    e.mesh.position.y = Math.sin(a) * h2;
+    e.mesh.position.x = Math.cos(a) * h2;
     if(firstPerson){
         c.mesh.position.z = -400 + Math.random() * 800;
+        e.mesh.position.z = -400 + Math.random() * 800;
 
     }
     else{
         c.mesh.position.z = -400 - Math.random() * 400;
-
+        e.mesh.position.z = 0;
     }
     c.mesh.rotation.z = a + Math.PI/2;
 
     var s = 1 + Math.random() * 2;
     c.mesh.scale.set(s, s, s);
     this.mesh.add(c.mesh);
+    e.mesh.position.y -= 600;
+    enemiesArr.push(e);
+    scene.add(e.mesh);
   }
 }
 
@@ -174,7 +184,7 @@ Sea = function() {
 Cloud = function() {
   this.mesh = new THREE.Object3D();
   this.mesh.name = "cloud";
-  var geom = new THREE.CubeGeometry(20, 20, 20);
+  var geom = new THREE.CubeGeometry(20,20,20);
 
   var mat = new THREE.MeshPhongMaterial({
     color : Colors.white,
@@ -198,6 +208,51 @@ Cloud = function() {
   }
 }
 
+Enemy = function() {
+  this.mesh = new THREE.Object3D();
+  this.mesh.name = "enemy";
+  var geom = new THREE.CubeGeometry(20,20,20);
+
+  var mat = new THREE.MeshPhongMaterial({
+    color : Colors.red,
+  });
+
+  var c = new THREE.Mesh(geom.clone(), mat);
+  this.mesh.add(c);
+
+  var e = new THREE.Mesh(geom.clone(), mat);
+  e.scale.set(0.5, 0.5, 0.5);
+  e.position.z += 15;
+  this.mesh.add(e);
+
+  var w = new THREE.Mesh(geom.clone(), mat);
+  w.scale.set(0.5, 0.5, 0.5);
+  w.position.z -= 15;
+  this.mesh.add(w);
+
+  var f = new THREE.Mesh(geom.clone(), mat);
+  f.scale.set(0.5, 0.5, 0.5);
+  f.position.x += 15;
+  this.mesh.add(f);
+
+  var b = new THREE.Mesh(geom.clone(), mat);
+  b.scale.set(0.5, 0.5, 0.5);
+  b.position.x -= 15;
+  this.mesh.add(b);
+
+  var u = new THREE.Mesh(geom.clone(), mat);
+  u.scale.set(0.5, 0.5, 0.5);
+  u.position.y += 15;
+  this.mesh.add(u);
+
+  var d = new THREE.Mesh(geom.clone(), mat);
+  d.scale.set(0.5, 0.5, 0.5);
+  d.position.y -= 15;
+  this.mesh.add(d);
+
+
+}
+
 
 // 3D Models
 var sea;
@@ -209,6 +264,7 @@ function createPlane() {
   airplane.mesh.position.y = 100;
   defaultPlanePos = [airplane.mesh.position.x, airplane.mesh.position.y,airplane.mesh.position.z];
   scene.add(airplane.mesh);
+
 }
 
 function createSea() {
@@ -243,10 +299,23 @@ function createBullet(x, y, z){
 function updateProjectiles(){
     for(var i = 0; i < projectiles.length; i++){
         projectiles[i].mesh.position.x += 10;
-    //     setTimeout(function(){
-    //         scene.remove(projectiles[i].mesh);}, 1000);
+        for(var j = 0; j < enemiesArr.length; j++){
+            //enemiesArr[j]
+            var diffPos = enemiesArr[j].mesh.position.clone().sub(projectiles[i].mesh.position.clone());
+            var d = diffPos.length();
+            if (d<20){
+                scene.remove(enemiesArr[j].mesh);
+            }
+
+        }
+
+
     }
+
 }
+
+
+
 
 
 function loop() {
@@ -254,6 +323,12 @@ function loop() {
   updateProjectiles();
   sea.mesh.rotation.z += .005;
   sky.mesh.rotation.z += .01;
+
+  for(var i = 0; i < enemiesArr.length; i++){
+      enemiesArr[i].mesh.rotation.x += 0.05;
+      enemiesArr[i].mesh.rotation.y += 0.05;
+      enemiesArr[i].mesh.rotation.z += 0.05;
+  }
   renderer.render(scene, camera);
   if(!paused){
     requestAnimationFrame(loop);
@@ -269,8 +344,8 @@ function unTilt(fixSpeed){
 
 function updatePlane() {
   if(shooting){
-    createBullet(airplane.mesh.position.x, airplane.mesh.position.y, airplane.mesh.position.z+18);
-    createBullet(airplane.mesh.position.x, airplane.mesh.position.y, airplane.mesh.position.z-18);
+    createBullet(airplane.mesh.position.x, airplane.mesh.position.y-2, airplane.mesh.position.z+18);
+    createBullet(airplane.mesh.position.x, airplane.mesh.position.y-2, airplane.mesh.position.z-18);
   }
     //engage first person controls
   if(!firstPerson){
