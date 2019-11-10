@@ -316,8 +316,6 @@ function updateProjectiles(){
 
 
 
-
-
 function loop() {
   updatePlane();
   updateProjectiles();
@@ -329,13 +327,18 @@ function loop() {
       enemiesArr[i].mesh.rotation.y += 0.05;
       enemiesArr[i].mesh.rotation.z += 0.05;
 
-      if(enemiesArr[i].mesh.position.x < -500){
+      if(enemiesArr[i].mesh.position.x < -500){s
           enemiesArr[i].mesh.position.x = 1000;
       }else{
           enemiesArr[i].mesh.position.x -= 2;
       }
       // enemiesArr[i].mesh.position.y += 0.05;
   }
+
+
+
+
+
   renderer.render(scene, camera);
   if(!paused){
     requestAnimationFrame(loop);
