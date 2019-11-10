@@ -137,7 +137,7 @@ Sky = function() {
     var e = new Enemy();
     this.clouds.push(c);
     var a = stepAngle * i;
-    var h = 750 + Math.random() * 200;
+    var h = 1025 + Math.random() * 200;
     var h2 = 750 + Math.random() * 200;
 
     c.mesh.position.y = Math.sin(a) * h;
@@ -328,6 +328,13 @@ function loop() {
       enemiesArr[i].mesh.rotation.x += 0.05;
       enemiesArr[i].mesh.rotation.y += 0.05;
       enemiesArr[i].mesh.rotation.z += 0.05;
+
+      if(enemiesArr[i].mesh.position.x < -500){
+          enemiesArr[i].mesh.position.x = 1000;
+      }else{
+          enemiesArr[i].mesh.position.x -= 2;
+      }
+      // enemiesArr[i].mesh.position.y += 0.05;
   }
   renderer.render(scene, camera);
   if(!paused){
