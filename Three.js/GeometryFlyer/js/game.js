@@ -251,21 +251,10 @@ function createEnemies(){
     var enemyCount = 30;
     for (var i = 0; i < enemyCount; i++) {
       var e = new Enemy();
-      currentEnemies += 30;
-      // e.mesh.position.y = 30;
-      // e.mesh.position.x = 0;
-      //
-      // if(firstPerson){
-      //     e.mesh.position.z = -400 + Math.random() * 800;
-      //
-      // }
-      // else{
-      //     e.mesh.position.z = 0;
-      // }
-      //
-      // // e.mesh.position.y -= 600;
+      currentEnemies += enemiesArr.length;
+
       e.mesh.position.x = 300 + 1000*Math.random();;
-      e.mesh.position.y =  -10 + airplane.mesh.position.y+100*Math.random();
+      e.mesh.position.y =  -10 +100*Math.random();
       e.mesh.position.z = -400 + Math.random()*800;
       enemiesArr.push(e);
       scene.add(e.mesh);
@@ -323,10 +312,7 @@ function updateProjectiles(){
                 var diffPos = enemiesArr[j].mesh.position.clone().sub(projectiles[i].mesh.position.clone());
                 var d = diffPos.length();
                 if (d<20){
-                    currentEnemies-=1;
                     scene.remove(enemiesArr[j].mesh);
-                    scene.remove(projectiles[i].mesh);
-
                 }
 
 
@@ -546,6 +532,7 @@ function init(event) {
 // HANDLE MOUSE EVENTS
 
 var mousePos = { x: 0, y: 0 };
+var canShoot = true;
 
 function handleMouseMove(event) {
     if(! firstPerson){
@@ -600,7 +587,7 @@ function handleKeyDown(keyEvent){
 
    }
    if(keyEvent.key == " "){
-     shooting = true;
+        shooting = true;
 
   }
   if(keyEvent.key == "h"){
