@@ -118,7 +118,7 @@ function createLights() {
 }
 
 var geomCockpit;
-var enemiesArr = [];
+
 
 Sky = function() {
   this.mesh = new THREE.Object3D();
@@ -134,33 +134,24 @@ Sky = function() {
   var stepAngle = Math.PI*2 / this.nClouds;
   for (var i = 0; i < this.nClouds; i++) {
     var c = new Cloud();
-    var e = new Enemy();
     this.clouds.push(c);
     var a = stepAngle * i;
     var h = 1025 + Math.random() * 200;
-    var h2 = 750 + Math.random() * 200;
 
     c.mesh.position.y = Math.sin(a) * h;
     c.mesh.position.x = Math.cos(a) * h;
-    e.mesh.position.y = Math.sin(a) * h2;
-    e.mesh.position.x = Math.cos(a) * h2;
     if(firstPerson){
         c.mesh.position.z = -400 + Math.random() * 800;
-        e.mesh.position.z = -400 + Math.random() * 800;
 
     }
     else{
         c.mesh.position.z = -400 - Math.random() * 400;
-        e.mesh.position.z = 0;
     }
     c.mesh.rotation.z = a + Math.PI/2;
 
     var s = 1 + Math.random() * 2;
     c.mesh.scale.set(s, s, s);
     this.mesh.add(c.mesh);
-    e.mesh.position.y -= 600;
-    enemiesArr.push(e);
-    scene.add(e.mesh);
   }
 }
 
@@ -253,6 +244,34 @@ Enemy = function() {
 
 }
 
+var enemiesArr = [];
+var currentEnemies = 0;
+
+function createEnemies(){
+    var enemyCount = 30;
+    for (var i = 0; i < enemyCount; i++) {
+      var e = new Enemy();
+      currentEnemies += 30;
+      // e.mesh.position.y = 30;
+      // e.mesh.position.x = 0;
+      //
+      // if(firstPerson){
+      //     e.mesh.position.z = -400 + Math.random() * 800;
+      //
+      // }
+      // else{
+      //     e.mesh.position.z = 0;
+      // }
+      //
+      // // e.mesh.position.y -= 600;
+      e.mesh.position.x = 300 + 1000*Math.random();;
+      e.mesh.position.y =  -10 + airplane.mesh.position.y+100*Math.random();
+      e.mesh.position.z = -400 + Math.random()*800;
+      enemiesArr.push(e);
+      scene.add(e.mesh);
+    }
+
+}
 
 // 3D Models
 var sea;
@@ -301,11 +320,16 @@ function updateProjectiles(){
         projectiles[i].mesh.position.x += 10;
         for(var j = 0; j < enemiesArr.length; j++){
             //enemiesArr[j]
-            var diffPos = enemiesArr[j].mesh.position.clone().sub(projectiles[i].mesh.position.clone());
-            var d = diffPos.length();
-            if (d<20){
-                scene.remove(enemiesArr[j].mesh);
-            }
+                var diffPos = enemiesArr[j].mesh.position.clone().sub(projectiles[i].mesh.position.clone());
+                var d = diffPos.length();
+                if (d<20){
+                    currentEnemies-=1;
+                    scene.remove(enemiesArr[j].mesh);
+                    scene.remove(projectiles[i].mesh);
+
+                }
+
+
 
         }
 
@@ -323,16 +347,24 @@ function loop() {
   sky.mesh.rotation.z += .01;
 
   for(var i = 0; i < enemiesArr.length; i++){
+      //
+      // enemiesArr[i].mesh.position.x = airplane.mesh.position.x;
+      // enemiesArr[i].mesh.position.y = airplane.mesh.position.y;
+      // enemiesArr[i].mesh.position.z = airplane.mesh.position.z;
       enemiesArr[i].mesh.rotation.x += 0.05;
       enemiesArr[i].mesh.rotation.y += 0.05;
       enemiesArr[i].mesh.rotation.z += 0.05;
 
-      if(enemiesArr[i].mesh.position.x < -500){s
+      if(enemiesArr[i].mesh.position.x < -500){
           enemiesArr[i].mesh.position.x = 1000;
       }else{
           enemiesArr[i].mesh.position.x -= 2;
       }
       // enemiesArr[i].mesh.position.y += 0.05;
+
+      if(currentEnemies < 1){
+          createEnemies();
+      }
   }
 
 
@@ -394,8 +426,6 @@ function updatePlane() {
 				}
 				airplane.mesh.rotation.y -= turnSpeed;
 			}
-
-
 
     }
     if(turningRight){
@@ -508,6 +538,7 @@ function init(event) {
   createPlane();
   createSea();
   createSky();
+  createEnemies();
 
   loop();
 }
