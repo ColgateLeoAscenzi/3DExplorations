@@ -17,8 +17,17 @@ var altSpeed = 5;
 
 var projectiles = [];
 
+var normalCamera = true;
 var unlockedCamera = false;
+var isometricCamera = false;
+var adsLeftCamera = false;
+var fireParticles = [];
 
+
+//audio
+var audioLoader = new THREE.AudioLoader();
+
+var listener = new THREE.AudioListener();
 
 
 //COLORS
@@ -35,7 +44,7 @@ var Colors = {
 
 var scene,
     camera, fieldOfView, aspectRatio, nearPlane, farPlane,
-    renderer, container;
+    renderer, container, propellerSpeed;
 
 //SCREEN & MOUSE VARIABLES
 
@@ -45,6 +54,8 @@ var HEIGHT, WIDTH,
 //INIT THREE JS, SCREEN AND MOUSE EVENTS
 
 function createScene() {
+
+
 
   HEIGHT = window.innerHeight;
   WIDTH = window.innerWidth;
@@ -67,6 +78,9 @@ function createScene() {
   camera.position.x = 0;
   camera.position.z = 200;
   camera.position.y = 100;
+
+  camera.add( listener );
+
 
   var defaultPlanePos = [0,0,0];
 
@@ -164,7 +178,7 @@ Sea = function() {
     color : Colors.blue,
     transparent : true,
     opacity : .6,
-    shading : THREE.FlatShading,
+
   });
 
   this.mesh = new THREE.Mesh(geom, mat);
@@ -267,11 +281,24 @@ var sea;
 var airplane;
 
 function createPlane() {
+    propellerSpeed = 0.5;
   airplane = new AirPlane();
   airplane.mesh.scale.set(.25, .25, .25);
   airplane.mesh.position.y = 100;
   defaultPlanePos = [airplane.mesh.position.x, airplane.mesh.position.y,airplane.mesh.position.z];
+  console.log(window.location.pathname);
+  // var sound1 = new THREE.PositionalAudio( listener );
+  var sound1 = new THREE.Audio( listener );
+
+  audioLoader.load('./audio/flightmusic.ogg', function ( buffer ) {
+      sound1.setBuffer( buffer );
+      // sound1.setRefDistance( 20 );
+      sound1.play();
+  } );
+  airplane.mesh.add( sound1 );
+
   scene.add(airplane.mesh);
+  analyser1 = new THREE.AudioAnalyser( sound1, 32 );
 
 }
 
@@ -295,6 +322,8 @@ function createBullet(x, y, z){
     // var muzzleFlash = new THREE.AmbientLight(Colors.red, 0.9);;
     // muzzleFlash.position.set(bullet.mesh.position );
     // scene.add(muzzleFlash);
+    //particle type, scale, position, amount, duration
+    explodeParticle(new FireParticle(), 0.3, bullet.mesh.position, 3, 100);
     scene.add(bullet.mesh);
     projectiles.push(bullet)
 
@@ -302,6 +331,20 @@ function createBullet(x, y, z){
         scene.remove(bullet.mesh);}, 1000);
     // setTimeout(function(){
     //     scene.remove(muzzleFlash);}, 10);
+}
+
+function updateParticles(particleArray){
+    //smokelike generation
+    // for(var i = 0; i < particleArray.length; i++){
+    //     particleArray[i].position.x += Math.random()*0.5;
+    //     particleArray[i].position.y += Math.random()*0.5;
+    //     particleArray[i].position.z += Math.random()*0.5;
+    // }
+    for(var i = 0; i < particleArray.length; i++){
+        particleArray[i].position.x += -0.5 + Math.random()*1;
+        particleArray[i].position.y += -0.5 + Math.random()*1;
+        particleArray[i].position.z += -0.5 + Math.random()*1;
+    }
 }
 
 function updateProjectiles(){
@@ -315,8 +358,6 @@ function updateProjectiles(){
                     scene.remove(enemiesArr[j].mesh);
                 }
 
-
-
         }
 
 
@@ -329,6 +370,7 @@ function updateProjectiles(){
 function loop() {
   updatePlane();
   updateProjectiles();
+  updateParticles(fireParticles);
   sea.mesh.rotation.z += .005;
   sky.mesh.rotation.z += .01;
 
@@ -463,11 +505,12 @@ function updatePlane() {
   }
 
 // turn on and off propeller
+
   if(propellerOn){
-      airplane.propeller.rotation.x += 0.5;
+      airplane.propeller.rotation.x += propellerSpeed;
   }
   else{
-      airplane.propeller.rotation.x += 0;
+      airplane.propeller.rotation.x = 0;
   }
 
 
@@ -476,22 +519,29 @@ function updatePlane() {
 function updatePlaneView(){
 
 	if(!unlockedCamera){
-		camera.position.z = airplane.mesh.position.z;
-    	camera.position.x = airplane.mesh.position.x-100;
-    	camera.position.y = airplane.mesh.position.y+100;
-    	camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z));
+        if(normalCamera){
+            camera.position.z = airplane.mesh.position.z;
+            camera.position.x = airplane.mesh.position.x-100;
+            camera.position.y = airplane.mesh.position.y+100;
+            camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z));
+        }
 
-//Aim down sights left
-      // camera.position.z = airplane.mesh.position.z-10;
-      // camera.position.x = airplane.mesh.position.x-10;
-      // camera.position.y = airplane.mesh.position.y+20;
-      // camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z-100));
 
-  //right isometric
-      // camera.position.z = airplane.mesh.position.z+40;
-      // camera.position.x = airplane.mesh.position.x-30;
-      // camera.position.y = airplane.mesh.position.y+30;
-      // camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z-500));
+    //Aim down sights left
+        if(adsLeftCamera){
+          camera.position.z = airplane.mesh.position.z-10;
+          camera.position.x = airplane.mesh.position.x-10;
+          camera.position.y = airplane.mesh.position.y+20;
+          camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z-100));
+        }
+        if(isometricCamera){
+            // right isometric
+                camera.position.z = airplane.mesh.position.z+40;
+                camera.position.x = airplane.mesh.position.x-30;
+                camera.position.y = airplane.mesh.position.y+30;
+                camera.lookAt(new THREE.Vector3(airplane.mesh.position.x+1000,  airplane.mesh.position.y-500, airplane.mesh.position.z-500));
+        }
+
 	}
 
 	else{
@@ -601,6 +651,16 @@ function handleKeyDown(keyEvent){
         console.log("Properller started");
       }
   }
+  if(keyEvent.key == "ArrowLeft"){
+      propellerSpeed += 0.2;
+
+  }
+  if(keyEvent.key == "ArrowRight"){
+      propellerSpeed -= 0.2;
+
+  }
+
+  // if(keyEvent.key == "arrow")
    if(keyEvent.key == "x"){
        //removes old sky
        scene.remove(sky.mesh);
@@ -624,6 +684,21 @@ function handleKeyDown(keyEvent){
        createSky();
        scene.add(sky.mesh);
 
+   }
+   if(keyEvent.key == "1"){
+       isometricCamera = true;
+       normalCamera = false;
+       adsLeftCamera = false;
+   }
+   if(keyEvent.key == "2"){
+       adsLeftCamera = true;
+       normalCamera = false;
+       isometricCamera = false;
+   }
+   if(keyEvent.key == "3"){
+       normalCamera = true;
+       adsLeftCamera = false;
+       isometricCamera = false;
    }
 
    if(keyEvent.key == "w"){

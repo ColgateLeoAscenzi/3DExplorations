@@ -4,8 +4,7 @@ var Pilot = function(){
 
 	var geomEye = new THREE.BoxGeometry(3, 3, 3, 1, 1, 1);
   var matEye  = new THREE.MeshPhongMaterial(
-                             { color : 0x000000,
-                             shading : THREE.FlatShading });
+                             { color : 0x000000});
 
   var eye = new THREE.Mesh(geomEye, matEye);
 
@@ -26,8 +25,7 @@ var Pilot = function(){
 
 	var geomNose = new THREE.BoxGeometry(3, 3, 3, 1, 1, 1);
     var matNose  = new THREE.MeshPhongMaterial(
-                             { color : Colors.pink,
-                             shading : THREE.FlatShading });
+                             { color : Colors.pink});
 
     var nose = new THREE.Mesh(geomNose, matNose);
 
@@ -43,8 +41,7 @@ var Pilot = function(){
 	//beanie
 	var geomBeanie = new THREE.BoxGeometry(22, 10, 22, 1, 1, 1);
     var matBeanie  = new THREE.MeshPhongMaterial(
-                             { color : 0x6d727a,
-                             shading : THREE.FlatShading });
+                             { color : 0x6d727a});
 
   var beanie = new THREE.Mesh(geomBeanie, matBeanie);
 	beanie.position.y = 50;
@@ -54,8 +51,7 @@ var Pilot = function(){
 
 	var geomBeanie = new THREE.BoxGeometry(19, 10, 19, 1, 1, 1);
     var matBeanie  = new THREE.MeshPhongMaterial(
-                             { color : 0x6d727a,
-                             shading : THREE.FlatShading });
+                             { color : 0x6d727a});
 
   var beanie = new THREE.Mesh(geomBeanie, matBeanie);
 	beanie.position.y = 55;

@@ -6,8 +6,7 @@ var Projectile = function(){
 
   var geomProjMiddle = new THREE.BoxGeometry(8, 2, 2, 1, 1, 1);
   var matProjMiddle  = new THREE.MeshPhongMaterial(
-                             { color : 0x000000,
-                             shading : THREE.FlatShading });
+                             { color : 0x000000});
 
   var projMiddle = new THREE.Mesh(geomProjMiddle, matProjMiddle);
 
