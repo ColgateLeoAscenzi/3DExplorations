@@ -23,6 +23,7 @@ var isometricCamera = false;
 var adsLeftCamera = false;
 var fireParticles = [];
 
+var playingMusic = false;
 
 //audio
 var audioLoader = new THREE.AudioLoader();
@@ -79,7 +80,6 @@ function createScene() {
   camera.position.z = 200;
   camera.position.y = 100;
 
-  camera.add( listener );
 
 
   var defaultPlanePos = [0,0,0];
@@ -279,6 +279,7 @@ function createEnemies(){
 // 3D Models
 var sea;
 var airplane;
+var sound1;
 
 function createPlane() {
     propellerSpeed = 0.5;
@@ -288,12 +289,12 @@ function createPlane() {
   defaultPlanePos = [airplane.mesh.position.x, airplane.mesh.position.y,airplane.mesh.position.z];
   console.log(window.location.pathname);
   // var sound1 = new THREE.PositionalAudio( listener );
-  var sound1 = new THREE.Audio( listener );
+  sound1 = new THREE.Audio( listener );
 
   audioLoader.load('./audio/flightmusic.ogg', function ( buffer ) {
       sound1.setBuffer( buffer );
       // sound1.setRefDistance( 20 );
-      sound1.play();
+      
   } );
   airplane.mesh.add( sound1 );
 
@@ -575,6 +576,9 @@ function init(event) {
   createSea();
   createSky();
   createEnemies();
+	
+	camera.add( listener );
+	
 
   loop();
 }
@@ -658,6 +662,18 @@ function handleKeyDown(keyEvent){
   if(keyEvent.key == "ArrowRight"){
       propellerSpeed -= 0.2;
 
+  }
+	
+  if(keyEvent.key == "m"){
+  	
+	if(playingMusic == false){
+		sound1.play();
+	}
+	  else{
+		  sound1.pause();
+	  }
+	  playingMusic = !playingMusic;
+	  
   }
 
   // if(keyEvent.key == "arrow")
