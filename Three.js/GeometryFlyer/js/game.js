@@ -26,9 +26,9 @@ var fireParticles = [];
 var playingMusic = false;
 
 //audio
-var audioLoader = new THREE.AudioLoader();
+var audioLoader;
 
-var listener = new THREE.AudioListener();
+var listener;
 
 
 //COLORS
@@ -289,17 +289,10 @@ function createPlane() {
   defaultPlanePos = [airplane.mesh.position.x, airplane.mesh.position.y,airplane.mesh.position.z];
   console.log(window.location.pathname);
   // var sound1 = new THREE.PositionalAudio( listener );
-  sound1 = new THREE.Audio( listener );
-
-  audioLoader.load('./audio/flightmusic.ogg', function ( buffer ) {
-      sound1.setBuffer( buffer );
-      // sound1.setRefDistance( 20 );
-      
-  } );
-  airplane.mesh.add( sound1 );
+  
 
   scene.add(airplane.mesh);
-  analyser1 = new THREE.AudioAnalyser( sound1, 32 );
+  //analyser1 = new THREE.AudioAnalyser( sound1, 32 );
 
 }
 
@@ -577,7 +570,19 @@ function init(event) {
   createSky();
   createEnemies();
 	
-	camera.add( listener );
+ audioLoader = new THREE.AudioLoader();
+
+ listener = new THREE.AudioListener();
+	
+  camera.add( listener );
+  sound1 = new THREE.Audio( listener );
+
+  audioLoader.load('./audio/flightmusic.ogg', function ( buffer ) {
+      sound1.setBuffer( buffer );
+      // sound1.setRefDistance( 20 );
+      
+  } );
+  airplane.mesh.add( sound1 );
 	
 
   loop();
@@ -668,8 +673,10 @@ function handleKeyDown(keyEvent){
   	
 	if(playingMusic == false){
 		sound1.play();
+		console.log("Playing sound");
 	}
 	  else{
+		  console.log("Stopping sound");
 		  sound1.pause();
 	  }
 	  playingMusic = !playingMusic;
